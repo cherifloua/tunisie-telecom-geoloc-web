@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <link rel="icon" type="image/png" th:href="@{/images/tt-logo.png}"/>
+    <title th:text="${isEdit} ? 'Modifier le site' : 'Ajouter un site'">Site</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <link rel="manifest" th:href="@{/manifest.json}"/>
+    <meta name="theme-color" content="#c8102e"/>
+    <link rel="apple-touch-icon" th:href="@{/images/tt-logo.png}"/>
+</head>
+<body>
+<div th:replace="~{fragments/layout :: sidebar}"></div>
+<div class="content">
+    <h2 th:text="${isEdit} ? 'Modifier le site' : 'Ajouter un site telecom'">Site</h2>
+
+    <p th:if="${error}" class="error" th:text="${error}"></p>
+
+    <form class="site-form" th:action="@{/sites/save}" th:object="${form}" method="post">
+        <input type="hidden" th:field="*{id}"/>
+
+        <details open>
+            <summary>General &amp; Position</summary>
+            <div class="field-row">
+                <label>Nom du site :</label>
+                <input type="text" th:field="*{nom}" placeholder="Ex: Antenne Kairouan Nord"/>
+            </div>
+            <div class="field-row">
+                <label>Technologie :</label>
+                <select th:field="*{type}">
+                    <option value="2G">2G</option>
+                    <option value="3G">3G</option>
+                    <option value="4G">4G</option>
+                    <option value="5G">5G</option>
+                </select>
+            </div>
+            <div class="field-row">
+                <label>Etat :</label>
+                <select th:field="*{etat}">
+                    <option value="Actif">Actif</option>
+                    <option value="Maintenance">Maintenance</option>
+                    <option value="En panne">En panne</option>
+                </select>
+            </div>
+            <div class="field-row">
+                <label>Region / Gouvernorat :</label>
+                <input type="text" th:field="*{region}" placeholder="Ex: Kairouan"/>
+            </div>
+            <div class="field-row">
+                <label>Adresse :</label>
+                <input type="text" th:field="*{adresse}" placeholder="Ex: Avenue Habib Bourguiba, Kairouan"/>
+            </div>
+            <div class="field-row">
+                <label>Latitude :</label>
+                <input type="text" th:field="*{latitude}" placeholder="Ex: 35.6789"/>
+            </div>
+            <div class="field-row">
+                <label>Longitude :</label>
+                <input type="text" th:field="*{longitude}" placeholder="Ex: 10.0965"/>
+            </div>
+            <div class="field-row">
+                <label>Altitude (m) :</label>
+                <input type="text" th:field="*{altitude}" placeholder="Ex: 65"/>
+            </div>
+        </details>
+
+        <details>
+            <summary>Infrastructure</summary>
+            <div class="field-row">
+                <label>Type de support :</label>
+                <select th:field="*{typeSupport}">
+                    <option value="Pylone autoportant">Pylone autoportant</option>
+                    <option value="Pylone haubane">Pylone haubane</option>
+                    <option value="Rooftop">Rooftop</option>
+                    <option value="Monopole">Monopole</option>
+                </select>
+            </div>
+            <div class="field-row">
+                <label>Hauteur du pylone (m) :</label>
+                <input type="text" th:field="*{hauteurPylone}" placeholder="Ex: 30"/>
+            </div>
+            <div class="field-row">
+                <label>Nombre d'antennes :</label>
+                <input type="text" th:field="*{nombreAntennes}" placeholder="Ex: 3"/>
+            </div>
+        </details>
+
+        <details>
+            <summary>Parametres antennaires</summary>
+            <div class="field-row">
+                <label>HBA (Height Above Average Terrain) :</label>
+                <input type="text" th:field="*{hba}" placeholder="Ex: 95"/>
+            </div>
+            <div class="field-row">
+                <label>Hauteur antenne sur pylone (m) :</label>
+                <input type="text" th:field="*{hauteurAntenneSurPylone}" placeholder="Ex: 28"/>
+            </div>
+            <div class="field-row">
+                <label>Azimut (deg) :</label>
+                <input type="text" th:field="*{azimut}" placeholder="Ex: 120 (0-360)"/>
+            </div>
+            <div class="field-row">
+                <label>Tilt mecanique (deg) :</label>
+                <input type="text" th:field="*{tiltMecanique}" placeholder="Ex: 2"/>
+            </div>
+            <div class="field-row">
+                <label>Tilt electrique (deg) :</label>
+                <input type="text" th:field="*{tiltElectrique}" placeholder="Ex: 4"/>
+            </div>
+            <div class="field-row">
+                <label>Gain antenne (dBi) :</label>
+                <input type="text" th:field="*{gainAntenne}" placeholder="Ex: 17.5"/>
+            </div>
+            <div class="field-row">
+                <label>Polarisation :</label>
+                <select th:field="*{polarisation}">
+                    <option value="+/-45">+/-45</option>
+                    <option value="Verticale">Verticale</option>
+                    <option value="Horizontale">Horizontale</option>
+                </select>
+            </div>
+        </details>
+
+        <details>
+            <summary>Parametres radio</summary>
+            <div class="field-row">
+                <label>Bande de frequence (MHz) :</label>
+                <input type="text" th:field="*{bandeFrequence}" placeholder="Ex: 1800"/>
+            </div>
+            <div class="field-row">
+                <label>Largeur de bande (MHz) :</label>
+                <input type="text" th:field="*{largeurBande}" placeholder="Ex: 20"/>
+            </div>
+            <div class="field-row">
+                <label>Puissance d'emission (dBm) :</label>
+                <input type="text" th:field="*{puissanceEmission}" placeholder="Ex: 43"/>
+            </div>
+            <div class="field-row">
+                <label>Type d'equipement radio :</label>
+                <input type="text" th:field="*{typeEquipementRadio}" placeholder="Ex: eNodeB, gNodeB, Node B, BTS"/>
+            </div>
+            <div class="field-row">
+                <label>Rayon de couverture estime (km) :</label>
+                <input type="text" th:field="*{rayonCouverture}" placeholder="Ex: 5"/>
+            </div>
+        </details>
+
+        <details>
+            <summary>Parametres energetiques</summary>
+            <div class="field-row">
+                <label>Type d'alimentation :</label>
+                <select th:field="*{typeAlimentation}">
+                    <option value="Reseau electrique">Reseau electrique</option>
+                    <option value="Batterie">Batterie</option>
+                    <option value="Groupe electrogene">Groupe electrogene</option>
+                </select>
+            </div>
+            <div class="field-row">
+                <label><input type="checkbox" th:field="*{presenceOnduleur}" style="width:auto;"/> Presence d'un onduleur</label>
+                <span></span>
+            </div>
+            <div class="field-row">
+                <label><input type="checkbox" th:field="*{presencePanneauxSolaires}" style="width:auto;"/> Presence de panneaux solaires</label>
+                <span></span>
+            </div>
+        </details>
+
+        <details open>
+            <summary>Exploitation</summary>
+            <div class="field-row">
+                <label>Date de mise en service :</label>
+                <input type="date" th:field="*{dateMiseEnService}"/>
+            </div>
+            <div class="field-row">
+                <label>Date de derniere maintenance :</label>
+                <input type="date" th:field="*{dateDerniereMaintenance}"/>
+            </div>
+            <div class="field-row">
+                <label>Derniere mise a jour :</label>
+                <input type="text" th:field="*{nouvelleEntreeHistorique}" placeholder="Ex: Evolution de 3G a 4G, changement d'antenne..."/>
+            </div>
+            <div class="field-row" style="grid-template-columns: 1fr;">
+                <label>Observations :</label>
+            </div>
+            <textarea th:field="*{observations}" rows="4"
+                      placeholder="Remarques, particularites du site..."></textarea>
+
+            <div class="historique-block" th:if="${isEdit}">
+                <label class="historique-title">Historique des mises a jour</label>
+                <p class="historique-hint">
+                    Le texte saisi ci-dessus est ajoute a ce journal a l'enregistrement ; laisse vide, une entree generique est ajoutee automatiquement.
+                </p>
+                <ul class="historique-list" th:if="${!historiqueEntries.isEmpty()}">
+                    <li th:each="entry : ${historiqueEntries}" th:text="${entry}">-</li>
+                </ul>
+                <p class="empty-hint" th:if="${historiqueEntries.isEmpty()}">Aucune modification enregistree pour le moment.</p>
+            </div>
+        </details>
+
+        <div style="margin-top:16px;">
+            <button class="button" type="submit">Enregistrer</button>
+            <a class="button" style="background:#888;" th:href="@{/sites}">Annuler</a>
+        </div>
+    </form>
+</div>
+<script>if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("/sw.js").catch(function(){});});}</script>
+</body>
+</html>

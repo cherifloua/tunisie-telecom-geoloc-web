@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <link rel="icon" type="image/png" th:href="@{/images/tt-logo.png}"/>
+    <title>Liste des sites - Tunisie Telecom</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <link rel="manifest" th:href="@{/manifest.json}"/>
+    <meta name="theme-color" content="#c8102e"/>
+    <link rel="apple-touch-icon" th:href="@{/images/tt-logo.png}"/>
+</head>
+<body>
+<div th:replace="~{fragments/layout :: sidebar}"></div>
+<div class="content">
+    <h2>Liste des sites telecom</h2>
+
+    <p th:if="${message}" class="success" th:text="${message}"></p>
+
+    <p>
+        <a class="button" style="background:#188038;" th:href="@{/sites/import}">Ajouter des sites (Excel)</a>
+    </p>
+
+    <div class="search-box">
+        <form th:action="@{/sites}" method="get">
+            <input type="text" name="q" th:value="${q}" placeholder="Rechercher par nom, ville, region ou technologie..."/>
+            <button class="button" type="submit">Rechercher</button>
+        </form>
+    </div>
+
+    <div style="overflow-x:auto;">
+    <table>
+        <thead>
+        <tr>
+            <th colspan="6">General</th>
+            <th colspan="3">Position</th>
+            <th colspan="3">Infrastructure</th>
+            <th colspan="7">Antenne</th>
+            <th colspan="5">Radio</th>
+            <th colspan="3">Energie</th>
+            <th colspan="4">Exploitation</th>
+            <th>Actions</th>
+        </tr>
+        <tr>
+            <th>ID</th><th>Nom</th><th>Technologie</th><th>Etat</th><th>Region</th><th>Adresse</th>
+            <th>Latitude</th><th>Longitude</th><th>Altitude</th>
+            <th>Support</th><th>Hauteur pylone</th><th>Nb antennes</th>
+            <th>HBA</th><th>Hauteur antenne</th><th>Azimut</th><th>Tilt meca.</th><th>Tilt elec.</th><th>Gain</th><th>Polarisation</th>
+            <th>Bande freq.</th><th>Largeur bande</th><th>Puissance</th><th>Equip. radio</th><th>Rayon couv.</th>
+            <th>Alimentation</th><th>Onduleur</th><th>Panneaux sol.</th>
+            <th>Mise en service</th><th>Derniere maint.</th><th>Derniere mise a jour</th><th>Observations</th>
+            <th></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="s : ${sites}">
+            <td th:text="${s.id}"></td>
+            <td th:text="${s.nom}"></td>
+            <td th:text="${s.type}"></td>
+            <td>
+                <span class="badge actif" th:if="${s.etat == 'Actif'}" th:text="${s.etat}"></span>
+                <span class="badge maintenance" th:if="${s.etat == 'Maintenance'}" th:text="${s.etat}"></span>
+                <span class="badge panne" th:if="${s.etat != 'Actif' and s.etat != 'Maintenance'}" th:text="${s.etat}"></span>
+            </td>
+            <td th:text="${s.region}"></td>
+            <td th:text="${s.adresse}"></td>
+            <td th:text="${s.latitude}"></td>
+            <td th:text="${s.longitude}"></td>
+            <td th:text="${s.altitude}"></td>
+            <td th:text="${s.typeSupport}"></td>
+            <td th:text="${s.hauteurPylone}"></td>
+            <td th:text="${s.nombreAntennes}"></td>
+            <td th:text="${s.hba}"></td>
+            <td th:text="${s.hauteurAntenneSurPylone}"></td>
+            <td th:text="${s.azimut}"></td>
+            <td th:text="${s.tiltMecanique}"></td>
+            <td th:text="${s.tiltElectrique}"></td>
+            <td th:text="${s.gainAntenne}"></td>
+            <td th:text="${s.polarisation}"></td>
+            <td th:text="${s.bandeFrequence}"></td>
+            <td th:text="${s.largeurBande}"></td>
+            <td th:text="${s.puissanceEmission}"></td>
+            <td th:text="${s.typeEquipementRadio}"></td>
+            <td th:text="${s.rayonCouverture}"></td>
+            <td th:text="${s.typeAlimentation}"></td>
+            <td th:text="${s.presenceOnduleur ? 'Oui' : 'Non'}"></td>
+            <td th:text="${s.presencePanneauxSolaires ? 'Oui' : 'Non'}"></td>
+            <td th:text="${s.dateMiseEnService ?: '-'}"></td>
+            <td th:text="${s.dateDerniereMaintenance ?: '-'}"></td>
+            <td th:text="${s.latestHistoriqueEntry()}" style="max-width:220px;"></td>
+            <td th:text="${s.observations}" style="max-width:200px;"></td>
+            <td class="actions-cell">
+                <a th:href="@{/sites/{id}(id=${s.id})}">Fiche</a>
+                <a th:href="@{/sites/{id}/edit(id=${s.id})}">Modifier</a>
+                <a th:href="@{'https://earth.google.com/web/@' + ${s.latitude} + ',' + ${s.longitude} + ',' + ${s.altitude} + 'a,1000d,35y,0h,0t,0r'}"
+                   target="_blank" rel="noopener" title="Centrer la vue sur Google Earth Web">Earth Web</a>
+                <form th:action="@{/sites/{id}/delete(id=${s.id})}" method="post" style="display:inline"
+                      onsubmit="return confirm('Supprimer ce site ?');">
+                    <button class="button danger" type="submit">Supprimer</button>
+                </form>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+    </div>
+
+    <p th:if="${#lists.isEmpty(sites)}">Aucun site ne correspond a cette recherche.</p>
+</div>
+<script>if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("/sw.js").catch(function(){});});}</script>
+</body>
+</html>

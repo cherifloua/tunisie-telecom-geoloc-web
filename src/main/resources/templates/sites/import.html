@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <link rel="icon" type="image/png" th:href="@{/images/tt-logo.png}"/>
+    <title>Importer des sites (Excel) - Tunisie Telecom</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <link rel="manifest" th:href="@{/manifest.json}"/>
+    <meta name="theme-color" content="#c8102e"/>
+    <link rel="apple-touch-icon" th:href="@{/images/tt-logo.png}"/>
+</head>
+<body>
+<div th:replace="~{fragments/layout :: sidebar}"></div>
+<div class="content">
+    <h2>Importer des sites depuis un fichier Excel</h2>
+
+    <p th:if="${error}" class="error" th:text="${error}"></p>
+    <p th:if="${imported}" class="success">
+        <span th:text="${imported}"></span> site(s) importe(s) avec succes.
+    </p>
+    <div th:if="${errors != null and !errors.isEmpty()}" class="error">
+        <p>Certaines lignes n'ont pas pu etre importees :</p>
+        <ul>
+            <li th:each="e : ${errors}" th:text="${e}"></li>
+        </ul>
+    </div>
+
+    <div class="card" style="max-width:600px;">
+        <h3>1. Preparer le fichier</h3>
+        <p>
+            Telechargez le modele Excel, remplissez une ligne par site (seuls
+            <strong>Nom</strong>, <strong>Latitude</strong> et <strong>Longitude</strong> sont obligatoires),
+            puis importez-le ci-dessous.
+        </p>
+        <a class="button" th:href="@{/sites/import/template}">Telecharger le modele Excel</a>
+    </div>
+
+    <div class="card teal" style="max-width:600px;margin-top:20px;">
+        <h3>2. Importer le fichier</h3>
+        <form method="post" th:action="@{/sites/import}" enctype="multipart/form-data">
+            <div class="field-row" style="grid-template-columns: 1fr;">
+                <input type="file" name="file" accept=".xlsx,.xls" required/>
+            </div>
+            <div style="margin-top:14px;">
+                <button class="button" type="submit">Importer les sites</button>
+                <a class="button" style="background:#888;" th:href="@{/sites}">Retour a la liste</a>
+            </div>
+        </form>
+    </div>
+</div>
+<script>if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("/sw.js").catch(function(){});});}</script>
+</body>
+</html>

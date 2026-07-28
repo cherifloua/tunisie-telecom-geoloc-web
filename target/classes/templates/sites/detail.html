@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <link rel="icon" type="image/png" th:href="@{/images/tt-logo.png}"/>
+    <title>Fiche technique - Tunisie Telecom</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <link rel="manifest" th:href="@{/manifest.json}"/>
+    <meta name="theme-color" content="#c8102e"/>
+    <link rel="apple-touch-icon" th:href="@{/images/tt-logo.png}"/>
+</head>
+<body>
+<div th:replace="~{fragments/layout :: sidebar}"></div>
+<div class="content">
+    <h2 th:text="${site.nom} + ' (' + ${site.type} + ')'">Site</h2>
+    <a th:href="@{/sites/{id}/edit(id=${site.id})}" class="button">Modifier</a>
+    <a th:href="@{/sites}" class="button" style="background:#888;">Retour a la liste</a>
+    <a th:href="@{/sites/{id}/export/kml(id=${site.id})}" class="button" style="background:#188038;">
+        Ouvrir dans Google Earth Pro (automatique)
+    </a>
+    <a th:href="@{'https://earth.google.com/web/@' + ${site.latitude} + ',' + ${site.longitude} + ',' + ${site.altitude} + 'a,1000d,35y,0h,0t,0r'}"
+       target="_blank" rel="noopener" class="button" style="background:#1a73e8;">
+        Voir la position sur Google Earth Web
+    </a>
+    <p style="font-size:0.85em;color:#666;">
+        Le bouton "Google Earth Pro" affiche automatiquement le site a l'ouverture du fichier.
+        Le lien "Google Earth Web" centre seulement la vue sur les coordonnees (Google ne permet pas
+        d'y afficher un repere automatiquement via un lien).
+    </p>
+
+    <pre class="tech-sheet">
+--- General ---
+Region : <span th:text="${site.region}"></span>
+Adresse : <span th:text="${site.adresse}"></span>
+Etat : <span th:text="${site.etat}"></span>
+
+--- Position ---
+Latitude : <span th:text="${site.latitude}"></span>
+Longitude : <span th:text="${site.longitude}"></span>
+Altitude : <span th:text="${site.altitude}"></span> m
+
+--- Infrastructure ---
+Support : <span th:text="${site.typeSupport}"></span>
+Hauteur pylone : <span th:text="${site.hauteurPylone}"></span> m
+Nombre d'antennes : <span th:text="${site.nombreAntennes}"></span>
+
+--- Antenne ---
+HBA : <span th:text="${site.hba}"></span>
+Hauteur antenne sur pylone : <span th:text="${site.hauteurAntenneSurPylone}"></span> m
+Azimut : <span th:text="${site.azimut}"></span> deg
+Tilt mecanique : <span th:text="${site.tiltMecanique}"></span> deg
+Tilt electrique : <span th:text="${site.tiltElectrique}"></span> deg
+Gain antenne : <span th:text="${site.gainAntenne}"></span> dBi
+Polarisation : <span th:text="${site.polarisation}"></span>
+
+--- Radio ---
+Bande de frequence : <span th:text="${site.bandeFrequence}"></span> MHz
+Largeur de bande : <span th:text="${site.largeurBande}"></span> MHz
+Puissance d'emission : <span th:text="${site.puissanceEmission}"></span> dBm
+Equipement radio : <span th:text="${site.typeEquipementRadio}"></span>
+Rayon de couverture estime : <span th:text="${site.rayonCouverture}"></span> km
+
+--- Energie ---
+Alimentation : <span th:text="${site.typeAlimentation}"></span>
+Onduleur : <span th:text="${site.presenceOnduleur ? 'Oui' : 'Non'}"></span>
+Panneaux solaires : <span th:text="${site.presencePanneauxSolaires ? 'Oui' : 'Non'}"></span>
+
+--- Exploitation ---
+Mise en service : <span th:text="${site.dateMiseEnService != null ? site.dateMiseEnService : '-'}"></span>
+Derniere maintenance : <span th:text="${site.dateDerniereMaintenance != null ? site.dateDerniereMaintenance : '-'}"></span>
+Derniere mise a jour : <span th:text="${site.latestHistoriqueEntry()}"></span>
+Observations : <span th:text="${site.observations}"></span>
+
+--- Historique ---
+<span th:if="${site.historiqueEntries().isEmpty()}">Aucune modification enregistree pour le moment.</span><th:block th:each="entry : ${site.historiqueEntries()}">- <span th:text="${entry}"></span><br/></th:block>
+    </pre>
+</div>
+<script>if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("/sw.js").catch(function(){});});}</script>
+</body>
+</html>

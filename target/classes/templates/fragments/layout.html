@@ -1,0 +1,10 @@
+<div th:fragment="sidebar" class="sidebar">
+    <img src="/images/tt-logo.png" alt="Tunisie Telecom"/>
+    <h1>Tunisie Telecom</h1>
+    <p>Geolocalisation des sites</p>
+    <a th:href="@{/}"><span class="nav-icon">🏠</span> Accueil</a>
+    <a th:href="@{/sites/import}"><span class="nav-icon">📥</span> Ajouter des sites (Excel)</a>
+    <a th:href="@{/sites}"><span class="nav-icon">📋</span> Liste des sites</a>
+    <a th:href="@{/map}"><span class="nav-icon">🗺️</span> Carte GPS</a>
+    <a th:href="@{/export/kml}"><span class="nav-icon">🌍</span> Export Google Earth</a>
+</div>
