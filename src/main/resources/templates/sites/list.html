@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <link rel="icon" type="image/png" th:href="@{/images/tt-logo.png}"/>
+    <link rel="icon" type="image/png" sizes="32x32" th:href="@{/images/tt-icon-32.png}"/>
     <title>Liste des sites - Tunisie Telecom</title>
     <link rel="stylesheet" th:href="@{/css/style.css}"/>
     <link rel="manifest" th:href="@{/manifest.json}"/>
     <meta name="theme-color" content="#c8102e"/>
-    <link rel="apple-touch-icon" th:href="@{/images/tt-logo.png}"/>
+    <link rel="apple-touch-icon" sizes="180x180" th:href="@{/images/tt-icon-180.png}"/>
 </head>
 <body>
 <div th:replace="~{fragments/layout :: sidebar}"></div>
@@ -28,10 +28,19 @@
         </form>
     </div>
 
+    <form id="bulk-form" th:action="@{/sites/delete-bulk}" method="post"
+          onsubmit="return confirm('Supprimer definitivement les sites selectionnes ?');">
+        <div class="bulk-actions-bar">
+            <span id="bulk-count">0 site(s) selectionne(s)</span>
+            <button class="button danger" type="submit" id="bulk-delete-btn" disabled>Supprimer la selection</button>
+        </div>
+    </form>
+
     <div style="overflow-x:auto;">
     <table>
         <thead>
         <tr>
+            <th></th>
             <th colspan="6">General</th>
             <th colspan="3">Position</th>
             <th colspan="3">Infrastructure</th>
@@ -42,6 +51,7 @@
             <th>Actions</th>
         </tr>
         <tr>
+            <th><input type="checkbox" id="select-all"/></th>
             <th>ID</th><th>Nom</th><th>Technologie</th><th>Etat</th><th>Region</th><th>Adresse</th>
             <th>Latitude</th><th>Longitude</th><th>Altitude</th>
             <th>Support</th><th>Hauteur pylone</th><th>Nb antennes</th>
@@ -54,6 +64,7 @@
         </thead>
         <tbody>
         <tr th:each="s : ${sites}">
+            <td><input type="checkbox" class="row-select" th:value="${s.id}"/></td>
             <td th:text="${s.id}"></td>
             <td th:text="${s.nom}"></td>
             <td th:text="${s.type}"></td>
@@ -106,6 +117,52 @@
 
     <p th:if="${#lists.isEmpty(sites)}">Aucun site ne correspond a cette recherche.</p>
 </div>
+<script>
+(function () {
+    var selectAll = document.getElementById("select-all");
+    var bulkForm = document.getElementById("bulk-form");
+    var bulkCount = document.getElementById("bulk-count");
+    var bulkBtn = document.getElementById("bulk-delete-btn");
+
+    function rowCheckboxes() {
+        return Array.prototype.slice.call(document.querySelectorAll(".row-select"));
+    }
+
+    function updateCount() {
+        var checked = rowCheckboxes().filter(function (c) { return c.checked; });
+        bulkCount.textContent = checked.length + " site(s) selectionne(s)";
+        bulkBtn.disabled = checked.length === 0;
+        if (selectAll) {
+            selectAll.checked = checked.length > 0 && checked.length === rowCheckboxes().length;
+        }
+    }
+
+    rowCheckboxes().forEach(function (cb) {
+        cb.addEventListener("change", updateCount);
+    });
+
+    if (selectAll) {
+        selectAll.addEventListener("change", function () {
+            rowCheckboxes().forEach(function (cb) { cb.checked = selectAll.checked; });
+            updateCount();
+        });
+    }
+
+    bulkForm.addEventListener("submit", function () {
+        // Retire d'anciens champs caches (au cas ou le formulaire serait resoumis)
+        bulkForm.querySelectorAll("input[name=ids]").forEach(function (el) { el.remove(); });
+        rowCheckboxes().filter(function (c) { return c.checked; }).forEach(function (cb) {
+            var hidden = document.createElement("input");
+            hidden.type = "hidden";
+            hidden.name = "ids";
+            hidden.value = cb.value;
+            bulkForm.appendChild(hidden);
+        });
+    });
+
+    updateCount();
+})();
+</script>
 <script>if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("/sw.js").catch(function(){});});}</script>
 </body>
 </html>

@@ -281,6 +281,20 @@ public class SiteController {
         return "redirect:/sites";
     }
 
+    @PostMapping("/sites/delete-bulk")
+    public String deleteBulk(@RequestParam(name = "ids", required = false) List<Integer> ids,
+                              RedirectAttributes redirectAttributes) {
+        if (ids == null || ids.isEmpty()) {
+            redirectAttributes.addFlashAttribute("message", "Aucun site selectionne.");
+            return "redirect:/sites";
+        }
+        for (int id : ids) {
+            repository.delete(id);
+        }
+        redirectAttributes.addFlashAttribute("message", ids.size() + " site(s) supprime(s) avec succes.");
+        return "redirect:/sites";
+    }
+
     @GetMapping("/map")
     public String map(Model model) {
         try {
