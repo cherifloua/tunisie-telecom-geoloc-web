@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <link rel="icon" type="image/png" sizes="32x32" th:href="@{/images/tt-icon-32.png}"/>
+    <title>Liste des sites - Tunisie Telecom</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <link rel="manifest" th:href="@{/manifest.json}"/>
+    <meta name="theme-color" content="#c8102e"/>
+    <link rel="apple-touch-icon" sizes="180x180" th:href="@{/images/tt-icon-180.png}"/>
+</head>
+<body>
+<div th:replace="~{fragments/layout :: sidebar}"></div>
+<div class="content">
+    <h2>Liste des sites telecom</h2>
+
+    <p th:if="${message}" class="success" th:text="${message}"></p>
+
+    <p>
+        <a class="button" style="background:#188038;" th:href="@{/sites/import}">Ajouter des sites (Excel)</a>
+        <a class="button" style="background:#1a73e8;" th:href="@{/sites/import} + '#coller'">Coller des cellules (SYSTEM;SITE;LAT;LON;...)</a>
+    </p>
+
+    <div class="search-box">
+        <form th:action="@{/sites}" method="get">
+            <input type="text" name="q" th:value="${q}" placeholder="Rechercher par nom, ville, region, technologie, cellule ou canal (BCCH/ARFCN)..."/>
+            <button class="button" type="submit">Rechercher</button>
+        </form>
+    </div>
+
+    <form id="bulk-form" th:action="@{/sites/delete-bulk}" method="post"
+          onsubmit="return confirm('Supprimer definitivement les sites selectionnes ?');">
+        <div class="bulk-actions-bar">
+            <span id="bulk-count">0 site(s) selectionne(s)</span>
+            <button class="button danger" type="submit" id="bulk-delete-btn" disabled>Supprimer la selection</button>
+        </div>
+    </form>
+
+    <div style="overflow-x:auto;">
+    <table>
+        <thead>
+        <tr>
+            <th></th>
+            <th colspan="6">General</th>
+            <th colspan="3">Position</th>
+            <th colspan="3">Infrastructure</th>
+            <th colspan="7">Antenne</th>
+            <th colspan="9">Radio</th>
+            <th colspan="3">Energie</th>
+            <th colspan="4">Exploitation</th>
+            <th>Actions</th>
+        </tr>
+        <tr>
+            <th><input type="checkbox" id="select-all"/></th>
+            <th>ID</th><th>Nom</th><th>Technologie</th><th>Etat</th><th>Region</th><th>Adresse</th>
+            <th>Latitude</th><th>Longitude</th><th>Altitude</th>
+            <th>Support</th><th>Hauteur pylone</th><th>Nb antennes</th>
+            <th>HBA</th><th>Hauteur antenne</th><th>Azimut</th><th>Tilt meca.</th><th>Tilt elec.</th><th>Gain</th><th>Polarisation</th>
+            <th>Bande freq.</th><th>Largeur bande</th><th>Puissance</th><th>Equip. radio</th><th>Rayon couv.</th>
+            <th>Cellule</th><th>Canal (BCCH/ARFCN)</th><th>CID</th><th>PCI</th>
+            <th>Alimentation</th><th>Onduleur</th><th>Panneaux sol.</th>
+            <th>Mise en service</th><th>Derniere maint.</th><th>Derniere mise a jour</th><th>Observations</th>
+            <th></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="s : ${sites}">
+            <td><input type="checkbox" class="row-select" th:value="${s.id}"/></td>
+            <td th:text="${s.id}"></td>
+            <td th:text="${s.nom}"></td>
+            <td th:text="${s.type}"></td>
+            <td>
+                <span class="badge actif" th:if="${s.etat == 'Actif'}" th:text="${s.etat}"></span>
+                <span class="badge maintenance" th:if="${s.etat == 'Maintenance'}" th:text="${s.etat}"></span>
+                <span class="badge panne" th:if="${s.etat != 'Actif' and s.etat != 'Maintenance'}" th:text="${s.etat}"></span>
+            </td>
+            <td th:text="${s.star(s.region)}"></td>
+            <td th:text="${s.star(s.adresse)}"></td>
+            <td th:text="${s.latitude}"></td>
+            <td th:text="${s.longitude}"></td>
+            <td th:text="${s.starNum(s.altitude)}"></td>
+            <td th:text="${s.typeSupport}"></td>
+            <td th:text="${s.starNum(s.hauteurPylone)}"></td>
+            <td th:text="${s.nombreAntennes}"></td>
+            <td th:text="${s.starNum(s.hba)}"></td>
+            <td th:text="${s.starNum(s.hauteurAntenneSurPylone)}"></td>
+            <td th:text="${s.azimut}"></td>
+            <td th:text="${s.starNum(s.tiltMecanique)}"></td>
+            <td th:text="${s.starNum(s.tiltElectrique)}"></td>
+            <td th:text="${s.starNum(s.gainAntenne)}"></td>
+            <td th:text="${s.polarisation}"></td>
+            <td th:text="${s.star(s.bandeFrequence)}"></td>
+            <td th:text="${s.starNum(s.largeurBande)}"></td>
+            <td th:text="${s.starNum(s.puissanceEmission)}"></td>
+            <td th:text="${s.star(s.typeEquipementRadio)}"></td>
+            <td th:text="${s.starNum(s.rayonCouverture)}"></td>
+            <td th:text="${s.star(s.cellule)}"></td>
+            <td th:text="${s.star(s.canal)}"></td>
+            <td th:text="${s.star(s.cid)}"></td>
+            <td th:text="${s.star(s.pci)}"></td>
+            <td th:text="${s.typeAlimentation}"></td>
+            <td th:text="${s.presenceOnduleur ? 'Oui' : 'Non'}"></td>
+            <td th:text="${s.presencePanneauxSolaires ? 'Oui' : 'Non'}"></td>
+            <td th:text="${s.dateMiseEnService ?: '*'}"></td>
+            <td th:text="${s.dateDerniereMaintenance ?: '*'}"></td>
+            <td th:text="${s.latestHistoriqueEntry()}" style="max-width:220px;"></td>
+            <td th:text="${s.star(s.observations)}" style="max-width:200px;"></td>
+            <td class="actions-cell">
+                <a th:href="@{/sites/{id}(id=${s.id})}">Fiche</a>
+                <a th:href="@{/sites/{id}/edit(id=${s.id})}">Modifier</a>
+                <a th:href="@{'https://earth.google.com/web/@' + ${s.latitude} + ',' + ${s.longitude} + ',' + ${s.altitude} + 'a,1000d,35y,0h,0t,0r'}"
+                   target="_blank" rel="noopener" title="Centrer la vue sur Google Earth Web">Earth Web</a>
+                <form th:action="@{/sites/{id}/delete(id=${s.id})}" method="post" style="display:inline"
+                      onsubmit="return confirm('Supprimer ce site ?');">
+                    <button class="button danger" type="submit">Supprimer</button>
+                </form>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+    </div>
+
+    <p th:if="${#lists.isEmpty(sites)}">Aucun site ne correspond a cette recherche.</p>
+
+    <p style="margin-top:16px;">
+        <a class="button" style="background:#188038;" th:href="@{/sites/export/xlsx(q=${q})}">Telecharger un fichier Excel rempli</a>
+    </p>
+</div>
+<script>
+(function () {
+    var selectAll = document.getElementById("select-all");
+    var bulkForm = document.getElementById("bulk-form");
+    var bulkCount = document.getElementById("bulk-count");
+    var bulkBtn = document.getElementById("bulk-delete-btn");
+
+    function rowCheckboxes() {
+        return Array.prototype.slice.call(document.querySelectorAll(".row-select"));
+    }
+
+    function updateCount() {
+        var checked = rowCheckboxes().filter(function (c) { return c.checked; });
+        bulkCount.textContent = checked.length + " site(s) selectionne(s)";
+        bulkBtn.disabled = checked.length === 0;
+        if (selectAll) {
+            selectAll.checked = checked.length > 0 && checked.length === rowCheckboxes().length;
+        }
+    }
+
+    rowCheckboxes().forEach(function (cb) {
+        cb.addEventListener("change", updateCount);
+    });
+
+    if (selectAll) {
+        selectAll.addEventListener("change", function () {
+            rowCheckboxes().forEach(function (cb) { cb.checked = selectAll.checked; });
+            updateCount();
+        });
+    }
+
+    bulkForm.addEventListener("submit", function () {
+        // Retire d'anciens champs caches (au cas ou le formulaire serait resoumis)
+        bulkForm.querySelectorAll("input[name=ids]").forEach(function (el) { el.remove(); });
+        rowCheckboxes().filter(function (c) { return c.checked; }).forEach(function (cb) {
+            var hidden = document.createElement("input");
+            hidden.type = "hidden";
+            hidden.name = "ids";
+            hidden.value = cb.value;
+            bulkForm.appendChild(hidden);
+        });
+    });
+
+    updateCount();
+})();
+</script>
+<script>if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("/sw.js").catch(function(){});});}</script>
+</body>
+</html>

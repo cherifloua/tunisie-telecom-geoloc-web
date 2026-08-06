@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <link rel="icon" type="image/png" sizes="32x32" th:href="@{/images/tt-icon-32.png}"/>
+    <title>Tunisie Telecom - Geolocalisation des sites</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <link rel="manifest" th:href="@{/manifest.json}"/>
+    <meta name="theme-color" content="#c8102e"/>
+    <link rel="apple-touch-icon" sizes="180x180" th:href="@{/images/tt-icon-180.png}"/>
+</head>
+<body>
+<div th:replace="~{fragments/layout :: sidebar}"></div>
+<div class="content">
+
+    <!-- ===== En-tete ===== -->
+    <div class="page-header">
+        <div>
+            <h2>Tableau de bord</h2>
+            <p class="subtitle">Gestion et localisation des sites de transmission (2G / 3G / 4G / 5G)</p>
+        </div>
+        <a class="button primary-cta" th:href="@{/sites/import}">+ Ajouter des sites</a>
+    </div>
+
+    <!-- ===== Alerte : chevauchements de couverture ===== -->
+    <div class="overlap-banner" th:if="${nbChevauchements > 0}">
+        <div class="overlap-banner-text">
+            <span class="overlap-banner-icon">⚠️</span>
+            <div>
+                <strong th:text="${nbChevauchements} + ' chevauchement(s) de couverture detecte(s)'">0 chevauchement</strong>
+                <p>Deux secteurs ou plus couvrent la meme zone geographique. <a th:href="@{/map}">Voir sur la carte &rarr;</a></p>
+            </div>
+        </div>
+        <ul class="overlap-list">
+            <li th:each="o : ${chevauchements}">
+                <b th:text="${o.siteA().nom}">Site A</b> &harr; <b th:text="${o.siteB().nom}">Site B</b>
+                <span class="overlap-distance" th:text="'(' + ${o.distanceArrondie()} + ' km)'">(0 km)</span>
+            </li>
+        </ul>
+    </div>
+
+    <!-- ===== Section 1 : indicateurs principaux ===== -->
+    <div class="kpi-grid section">
+        <div class="kpi-card">
+            <div class="kpi-icon blue">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+            </div>
+            <div class="kpi-body">
+                <span class="kpi-value" th:text="${total}">0</span>
+                <span class="kpi-label">Sites au total</span>
+            </div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-icon green">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+            </div>
+            <div class="kpi-body">
+                <span class="kpi-value" th:text="${actifs}">0</span>
+                <span class="kpi-label">Sites actifs</span>
+            </div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-icon orange">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
+            </div>
+            <div class="kpi-body">
+                <span class="kpi-value" th:text="${maintenance}">0</span>
+                <span class="kpi-label">En maintenance</span>
+            </div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-icon red">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5"/><path d="M12 16h.01"/></svg>
+            </div>
+            <div class="kpi-body">
+                <span class="kpi-value" th:text="${panne}">0</span>
+                <span class="kpi-label">En panne</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== Section 2 : vue d'ensemble reseau + acces rapide ===== -->
+    <h3 class="section-title">Vue d'ensemble du reseau</h3>
+    <div class="dash-grid section">
+
+        <div class="panel">
+            <div class="panel-header">
+                <h3>Disponibilite globale</h3>
+            </div>
+            <div class="availability">
+                <div class="availability-ring" th:style="'--pct:' + ${#numbers.formatDecimal(tauxDisponibilite,1,0)}">
+                    <span th:text="${#numbers.formatDecimal(tauxDisponibilite,1,0)} + '%'">0%</span>
+                </div>
+                <div class="availability-legend">
+                    <div><span class="dot green"></span> Actifs <b th:text="${actifs}">0</b></div>
+                    <div><span class="dot orange"></span> Maintenance <b th:text="${maintenance}">0</b></div>
+                    <div><span class="dot red"></span> En panne <b th:text="${panne}">0</b></div>
+                </div>
+            </div>
+
+            <div class="panel-divider"></div>
+
+            <div class="panel-header">
+                <h3>Repartition par technologie</h3>
+            </div>
+            <div class="tech-bars">
+                <div class="tech-bar-row" th:each="entry : ${parTechnologie}">
+                    <span class="tech-name" th:text="${entry.key}">2G</span>
+                    <div class="tech-bar-track">
+                        <div class="tech-bar-fill"
+                             th:classappend="${entry.key == '2G'} ? 'c2g' : (${entry.key == '3G'} ? 'c3g' : (${entry.key == '4G'} ? 'c4g' : (${entry.key == '5G'} ? 'c5g' : 'cautre')))"
+                             th:style="'width:' + (${total} > 0 ? (${entry.value} * 100 / ${total}) : 0) + '%'">
+                        </div>
+                    </div>
+                    <span class="tech-count" th:text="${entry.value}">0</span>
+                </div>
+                <p th:if="${total == 0}" class="empty-hint">Aucun site enregistre pour le moment.</p>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-header">
+                <h3>Acces rapide</h3>
+            </div>
+            <div class="quick-links">
+                <a th:href="@{/sites/import}" class="quick-link blue">
+                    <span class="quick-link-icon">📥</span>
+                    <span class="quick-link-text">
+                        <span class="qt">Ajouter des sites</span>
+                        <small>Import Excel en masse</small>
+                    </span>
+                </a>
+                <a th:href="@{/sites}" class="quick-link teal">
+                    <span class="quick-link-icon">📋</span>
+                    <span class="quick-link-text">
+                        <span class="qt">Liste des sites</span>
+                        <small>Consulter / modifier</small>
+                    </span>
+                </a>
+                <a th:href="@{/map}" class="quick-link green">
+                    <span class="quick-link-icon">🗺️</span>
+                    <span class="quick-link-text">
+                        <span class="qt">Carte GPS</span>
+                        <small>Visualisation geographique</small>
+                    </span>
+                </a>
+                <a th:href="@{/export/kml}" class="quick-link orange">
+                    <span class="quick-link-icon">🌍</span>
+                    <span class="quick-link-text">
+                        <span class="qt">Export Google Earth</span>
+                        <small>Fichier KML complet</small>
+                    </span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== Section 3 : indicateurs complementaires ===== -->
+    <h3 class="section-title">Indicateurs complementaires</h3>
+    <div class="indicators-strip section">
+        <div class="indicator-item">
+            <span class="indicator-icon">📍</span>
+            <div class="indicator-text">
+                <span class="indicator-value" th:text="${nbRegions}">0</span>
+                <span class="indicator-label">Regions couvertes</span>
+            </div>
+        </div>
+        <div class="indicator-item">
+            <span class="indicator-icon">🔋</span>
+            <div class="indicator-text">
+                <span class="indicator-value" th:text="${alimentationSecours}">0</span>
+                <span class="indicator-label">Sites avec alimentation de secours</span>
+            </div>
+        </div>
+        <div class="indicator-item">
+            <span class="indicator-icon">🛠️</span>
+            <div class="indicator-text">
+                <span class="indicator-value" th:text="${maintenanceProche}">0</span>
+                <span class="indicator-label">Maintenance a prevoir (&gt; 6 mois)</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== Section 4 : activite recente ===== -->
+    <h3 class="section-title">Activite recente</h3>
+    <div class="panel section">
+        <div class="panel-header">
+            <h3>Sites recemment mis a jour</h3>
+            <a th:href="@{/sites}" class="see-all">Voir tous les sites &rarr;</a>
+        </div>
+        <table th:if="${!recents.isEmpty()}">
+            <thead>
+            <tr>
+                <th>Nom du site</th>
+                <th>Technologie</th>
+                <th>Region</th>
+                <th>Statut</th>
+                <th>Derniere mise a jour</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="site : ${recents}">
+                <td th:text="${site.nom}">Nom</td>
+                <td>
+                    <span class="badge tech" th:style="'background:' + ${site.colorForType()}" th:text="${site.type}">4G</span>
+                </td>
+                <td th:text="${site.region}">Region</td>
+                <td>
+                    <span class="badge"
+                          th:classappend="${site.etat == 'Actif'} ? 'actif' : (${site.etat == 'Maintenance'} ? 'maintenance' : 'panne')"
+                          th:text="${site.etat}">Actif</span>
+                </td>
+                <td th:text="${site.latestHistoriqueEntry()}" style="max-width:220px;">-</td>
+                <td class="actions-cell">
+                    <a th:href="@{/sites/{id}(id=${site.id})}">Voir</a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+        <p th:if="${recents.isEmpty()}" class="empty-hint">Aucun site enregistre pour le moment. Commencez par en importer via Excel.</p>
+    </div>
+
+    <!-- ===== Section 5 : export Google Earth (bandeau compact) ===== -->
+    <div class="earth-banner">
+        <div class="earth-banner-text">
+            <span class="earth-banner-icon">🌍</span>
+            <div>
+                <strong>Export Google Earth</strong>
+                <p>Le KML telecharge affiche automatiquement tous les sites a l'ouverture dans Google Earth Pro.</p>
+            </div>
+        </div>
+        <div class="earth-banner-actions">
+            <a class="button" th:href="@{/export/kml}">Ouvrir dans Google Earth Pro</a>
+            <a th:href="@{/earth}" target="_blank" rel="noopener" class="link-secondary">Voir sur Google Earth Web</a>
+        </div>
+    </div>
+
+</div>
+<script>if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("/sw.js").catch(function(){});});}</script>
+</body>
+</html>
