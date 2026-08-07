@@ -173,6 +173,43 @@
 
             var matchedMarkers = [];
 
+            // Plusieurs cellules installees sur le meme pylone partagent souvent la meme
+            // position ET le meme azimut (ex: memes secteurs sur bandes 900/2100 differentes).
+            // Leurs secteurs se superposent alors exactement, ce qui les rend indiscernables
+            // et empeche de cliquer sur celles du dessous. On les regroupe ici par position +
+            // azimut proche, puis on ecarte legerement chaque secteur du groupe (angle et
+            // rayon) uniquement a l'affichage, pour les rendre tous visibles et cliquables.
+            // L'azimut reel (non modifie) reste affiche dans le popup de chaque cellule.
+            var FAN_SPREAD_DEG = 10;   // ecart angulaire entre cellules d'un meme groupe
+            var RING_STEP = 0.12;      // variation de rayon entre cellules d'un meme groupe (anneaux concentriques)
+
+            function locKey(s) {
+                return s.latitude.toFixed(5) + ',' + s.longitude.toFixed(5);
+            }
+
+            var groups = {};
+            sites.forEach(function (s) {
+                var gk = locKey(s) + '|' + Math.round((s.azimut || 0) / 8); // meme position + azimut a 8 deg pres
+                (groups[gk] = groups[gk] || []).push(s);
+            });
+            var displayAzimut = {};
+            var displayRadiusScale = {};
+            Object.keys(groups).forEach(function (gk) {
+                var group = groups[gk];
+                if (group.length === 1) {
+                    displayAzimut[group[0].id] = group[0].azimut || 0;
+                    displayRadiusScale[group[0].id] = 1;
+                    return;
+                }
+                var baseAz = group[0].azimut || 0;
+                var n = group.length;
+                group.forEach(function (s, i) {
+                    var offset = (i - (n - 1) / 2) * FAN_SPREAD_DEG;
+                    displayAzimut[s.id] = baseAz + offset;
+                    displayRadiusScale[s.id] = 1 + (i - (n - 1) / 2) * RING_STEP;
+                });
+            });
+
             sites.forEach(function (s) {
                 var techColor = colorForType(s.type);
                 var etatColor = colorForEtat(s.etat);
@@ -205,7 +242,11 @@
                     sectorStyle = Object.assign({}, sectorStyle, { color: '#e6a817', weight: 5, fillOpacity: 0.5 });
                 }
 
-                L.polygon(sectorPolygon(s), sectorStyle).addTo(map).bindPopup(popupHtml);
+                var sDisplay = Object.assign({}, s, {
+                    azimut: displayAzimut[s.id],
+                    rayonCouverture: (s.rayonCouverture || 0) * displayRadiusScale[s.id]
+                });
+                L.polygon(sectorPolygon(sDisplay), sectorStyle).addTo(map).bindPopup(popupHtml);
 
                 var markerRadius = isBcchMatch ? 10 : 4;
                 var markerOpacity = isDimmed ? 0.15 : 1;
