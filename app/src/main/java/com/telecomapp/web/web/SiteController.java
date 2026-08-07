@@ -328,24 +328,34 @@ public class SiteController {
     }
 
     @GetMapping("/map")
-    public String map(Model model) {
+    public String map(@RequestParam(required = false) String bcch, Model model) {
         try {
-            List<Site> sites = repository.findAll();
-            List<SiteMapPoint> points = sites.stream()
+            List<Site> allSites = repository.findAll();
+            boolean bcchActif = bcch != null && !bcch.isBlank();
+            List<Site> matches = bcchActif ? repository.searchByCanal(bcch) : List.of();
+            List<Integer> matchIds = matches.stream().map(Site::getId).toList();
+
+            List<SiteMapPoint> points = allSites.stream()
                     .map(SiteMapPoint::fromSite)
                     .toList();
-            List<OverlapMapAlert> overlaps = CoverageOverlapDetector.detect(sites).stream()
+            List<OverlapMapAlert> overlaps = CoverageOverlapDetector.detect(allSites).stream()
                     .map(OverlapMapAlert::fromOverlap)
                     .toList();
             model.addAttribute("sites", points);
             model.addAttribute("overlapsJson", overlaps);
             model.addAttribute("mapError", null);
+            model.addAttribute("bcch", bcchActif ? bcch : "");
+            model.addAttribute("bcchMatchIds", matchIds);
+            model.addAttribute("bcchMatchCount", matches.size());
         } catch (Exception ex) {
             // Filet de securite : si un futur champ redevient non serialisable en JSON,
             // on affiche un message clair au lieu de laisser la page planter en plein rendu.
             model.addAttribute("sites", Collections.emptyList());
             model.addAttribute("overlapsJson", Collections.emptyList());
             model.addAttribute("mapError", "Impossible de preparer les donnees de la carte : " + ex.getMessage());
+            model.addAttribute("bcch", "");
+            model.addAttribute("bcchMatchIds", Collections.emptyList());
+            model.addAttribute("bcchMatchCount", 0);
         }
         return "map";
     }

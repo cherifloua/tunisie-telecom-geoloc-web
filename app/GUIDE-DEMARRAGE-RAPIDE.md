@@ -1,5 +1,47 @@
 # Guide de demarrage rapide
 
+## Stockage des donnees : base en ligne partagee entre PC et telephone
+
+L'application choisit automatiquement sa base de donnees au demarrage :
+
+- **Variable d'environnement `DATABASE_URL` presente** -> utilise une base
+  **PostgreSQL hebergee en ligne** (gratuite chez Render, Supabase, Neon,
+  Railway...). C'est le mode a utiliser en production : les donnees
+  survivent aux redeploiements et sont vues **en temps reel** par tous les
+  appareils (PC, telephone, etc.) qui parlent au meme serveur.
+- **`DATABASE_URL` absente** -> utilise une base **SQLite locale**
+  (`data/sites.db`), pratique pour developper en local sans rien configurer.
+
+Migration automatique et sans perte au demarrage, dans cet ordre :
+`ancien sites.csv` -> `SQLite (sites.db)` -> `Postgres (DATABASE_URL)`.
+Chaque etape ne s'execute que si la base cible est vide, donc rejouable
+sans risque a chaque demarrage -- tes 24 sites actuels (SQLite local) seront
+recopies automatiquement la premiere fois que tu demarres avec une
+`DATABASE_URL` renseignee.
+
+### Obtenir une base Postgres gratuite (10 minutes)
+
+**Option recommandee : le plan gratuit PostgreSQL de Render** (simple si tu
+heberges deja l'appli sur Render, cf. Etape 1 ci-dessous) :
+
+1. Sur https://render.com : **New +** -> **PostgreSQL**
+2. Choisis le plan **Free**, donne-lui un nom, cree la base
+3. Une fois creee, copie la valeur **"Internal Database URL"** (si ton
+   service web est aussi sur Render) ou **"External Database URL"** (sinon)
+4. Sur ton service web (l'application elle-meme) : **Environment** ->
+   ajoute une variable `DATABASE_URL` avec cette valeur -> **Save** ->
+   Render redemarre automatiquement l'app, qui detecte la variable et
+   bascule sur Postgres (avec migration automatique des donnees existantes)
+
+**Alternatives gratuites** (meme principe, il suffit de recuperer leur URL
+de connexion et de la mettre dans `DATABASE_URL`) : Supabase, Neon,
+ElephantSQL, Railway.
+
+**A savoir** : sur le plan gratuit de Render, la base Postgres elle-meme
+**est persistante** (contrairement au disque du service web) -- c'est
+justement ce qui resout le probleme de donnees perdues a chaque
+redeploiement, sans avoir a payer pour un disque.
+
 ## Ce que tu veux : PC et telephone independants, chacun avec son icone
 
 C'est possible et deja prevu dans le code (manifest + icones + service worker

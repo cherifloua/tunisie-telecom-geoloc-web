@@ -14,10 +14,14 @@ tablette — a condition que l'appareil puisse atteindre l'adresse du serveur.
 
 - CRUD complet des sites telecom (formulaire organise en sections repliables :
   General & Position, Infrastructure, Antenne, Radio, Energie, Exploitation)
-- Recherche par nom, ville, region ou technologie
+- Recherche par nom, ville, region, technologie, cellule ou BCCH/canal
+- Recherche BCCH **graphique** directement sur la carte GPS : surbrillance
+  dorée + halo pulsant + zoom automatique sur le(s) site(s) trouve(s)
 - Carte GPS reelle (OpenStreetMap / Leaflet)
 - Export Google Earth (fichier `.kml` telechargeable, fiche technique complete
   par site)
+- Stockage en base PostgreSQL hebergee (gratuite) si `DATABASE_URL` est
+  definie, sinon SQLite local -- voir `GUIDE-DEMARRAGE-RAPIDE.md`
 - Meme modele de donnees que la version desktop (`Site.java` est repris a
   l'identique)
 
@@ -95,7 +99,7 @@ tunisie-telecom-geoloc-web/
 │   ├── WebApplication.java        <- point d'entree Spring Boot
 │   ├── model/
 │   │   ├── Site.java              <- identique a la version desktop
-│   │   └── SiteRepository.java    <- meme stockage CSV local, +thread-safe
+│   │   └── SiteRepository.java    <- stockage Postgres (DATABASE_URL) ou SQLite local, thread-safe
 │   ├── util/
 │   │   └── KmlExporter.java       <- genere le KML pour telechargement HTTP
 │   └── web/

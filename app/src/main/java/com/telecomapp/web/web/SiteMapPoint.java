@@ -20,6 +20,10 @@ public class SiteMapPoint {
     public double longitude;
     public double azimut;
     public double rayonCouverture;
+    public String cellule;
+    public String canal;
+    public String cid;
+    public String pci;
 
     public static SiteMapPoint fromSite(Site s) {
         SiteMapPoint p = new SiteMapPoint();
@@ -32,6 +36,10 @@ public class SiteMapPoint {
         p.longitude = s.getLongitude();
         p.azimut = s.getAzimut();
         p.rayonCouverture = s.getRayonCouverture();
+        p.cellule = s.getCellule();
+        p.canal = s.getCanal();
+        p.cid = s.getCid();
+        p.pci = s.getPci();
         return p;
     }
 }

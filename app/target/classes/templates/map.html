@@ -31,6 +31,21 @@
         <b style="color:#c0392b;">rouge en pointilles</b>, avec la liste complete ci-dessous.
     </p>
 
+    <div class="search-box bcch-search">
+        <form th:action="@{/map}" method="get" class="bcch-form">
+            <input type="text" name="bcch" placeholder="Rechercher par BCCH / canal (ex: 6200)..." th:value="${bcch}"/>
+            <button type="submit">🔍 Localiser sur la carte</button>
+            <a th:if="${!bcch.isEmpty()}" th:href="@{/map}" class="bcch-clear">✕ Effacer</a>
+        </form>
+        <p th:if="${!bcch.isEmpty() and bcchMatchCount > 0}" class="bcch-result bcch-result-ok">
+            <span th:text="${bcchMatchCount}">0</span> site(s) trouve(s) pour le BCCH
+            "<b th:text="${bcch}">6200</b>" — mis en surbrillance sur la carte ci-dessous.
+        </p>
+        <p th:if="${!bcch.isEmpty() and bcchMatchCount == 0}" class="bcch-result bcch-result-empty">
+            Aucun site ne correspond au BCCH "<b th:text="${bcch}">6200</b>".
+        </p>
+    </div>
+
     <div id="overlap-banner" class="overlap-banner" th:if="${!overlapsJson.isEmpty()}">
         <div class="overlap-banner-text">
             <span class="overlap-banner-icon">⚠️</span>
@@ -64,6 +79,7 @@
     <script th:inline="javascript">
         var sites = /*[[${sites}]]*/ [];
         var overlaps = /*[[${overlapsJson}]]*/ [];
+        var bcchMatchIds = /*[[${bcchMatchIds}]]*/ [];
     </script>
 
     <script>
@@ -143,6 +159,10 @@
             var siteById = {};
             sites.forEach(function (s) { siteById[s.id] = s; });
 
+            var matchSet = {};
+            bcchMatchIds.forEach(function (id) { matchSet[id] = true; });
+            var hasBcchSearch = bcchMatchIds.length > 0;
+
             // Pour chaque site en chevauchement, la liste des sites concernes (pour le popup),
             // afin de surligner son secteur en rouge sur la carte.
             var overlapInfoBySiteId = {};
@@ -151,29 +171,73 @@
                 (overlapInfoBySiteId[o.idB] = overlapInfoBySiteId[o.idB] || []).push(o.nomA + ' (' + o.distanceKm + ' km)');
             });
 
+            var matchedMarkers = [];
+
             sites.forEach(function (s) {
                 var techColor = colorForType(s.type);
                 var etatColor = colorForEtat(s.etat);
                 var enChevauchement = !!overlapInfoBySiteId[s.id];
+                var isBcchMatch = !!matchSet[s.id];
+                var isDimmed = hasBcchSearch && !isBcchMatch;
 
                 var popupHtml = '<b>' + s.nom + '</b> (' + s.type + ')<br/>Etat: ' + s.etat
                         + '<br/>Azimut: ' + s.azimut + ' deg'
                         + '<br/>Rayon de couverture: ' + (s.rayonCouverture || 0) + ' km'
-                        + '<br/>Adresse: ' + s.adresse;
+                        + '<br/>Adresse: ' + s.adresse
+                        + '<br/>BCCH / Canal: ' + (s.canal || '*')
+                        + '<br/>Cellule: ' + (s.cellule || '*')
+                        + '<br/>CID: ' + (s.cid || '*') + ' &nbsp; PCI: ' + (s.pci || '*');
                 if (enChevauchement) {
                     popupHtml += '<br/><b style="color:#c0392b;">&#9888; Chevauchement avec : '
                             + overlapInfoBySiteId[s.id].join(', ') + '</b>';
                 }
+                if (isBcchMatch) {
+                    popupHtml = '<b style="color:#e6a817;">&#9733; Correspondance BCCH</b><br/>' + popupHtml;
+                }
 
-                L.polygon(sectorPolygon(s), enChevauchement
+                var sectorStyle = enChevauchement
                         ? { color: '#c0392b', weight: 3, dashArray: '6 4', fillColor: '#c0392b', fillOpacity: 0.35 }
-                        : { color: etatColor, weight: 3, fillColor: techColor, fillOpacity: 0.35 }
-                ).addTo(map).bindPopup(popupHtml);
+                        : { color: etatColor, weight: 3, fillColor: techColor, fillOpacity: 0.35 };
+                if (isDimmed) {
+                    sectorStyle = Object.assign({}, sectorStyle, { fillOpacity: 0.08, opacity: 0.25 });
+                }
+                if (isBcchMatch) {
+                    sectorStyle = Object.assign({}, sectorStyle, { color: '#e6a817', weight: 5, fillOpacity: 0.5 });
+                }
 
-                L.circleMarker([s.latitude, s.longitude], {
-                    radius: 4, color: etatColor, weight: 3, fillColor: techColor, fillOpacity: 1
+                L.polygon(sectorPolygon(s), sectorStyle).addTo(map).bindPopup(popupHtml);
+
+                var markerRadius = isBcchMatch ? 10 : 4;
+                var markerOpacity = isDimmed ? 0.15 : 1;
+                var marker = L.circleMarker([s.latitude, s.longitude], {
+                    radius: markerRadius,
+                    color: isBcchMatch ? '#e6a817' : etatColor,
+                    weight: isBcchMatch ? 4 : 3,
+                    fillColor: techColor,
+                    fillOpacity: markerOpacity,
+                    opacity: markerOpacity
                 }).addTo(map).bindPopup(popupHtml);
+
+                if (isBcchMatch) {
+                    matchedMarkers.push(marker);
+                    // Halo pulsant pour reperer immediatement le/les site(s) trouve(s).
+                    L.circleMarker([s.latitude, s.longitude], {
+                        radius: 18, color: '#e6a817', weight: 2, fillOpacity: 0, className: 'bcch-pulse'
+                    }).addTo(map);
+                }
             });
+
+            // Recherche BCCH active : zoome/centre automatiquement sur les sites trouves
+            // et ouvre leur popup, pour un resultat visuel immediat.
+            if (hasBcchSearch && matchedMarkers.length > 0) {
+                if (matchedMarkers.length === 1) {
+                    map.setView(matchedMarkers[0].getLatLng(), 14);
+                    matchedMarkers[0].openPopup();
+                } else {
+                    var group = L.featureGroup(matchedMarkers);
+                    map.fitBounds(group.getBounds().pad(0.3));
+                }
+            }
 
             // Trace une ligne rouge en pointilles entre chaque paire de sites en
             // chevauchement de couverture, avec la distance reelle en infobulle.

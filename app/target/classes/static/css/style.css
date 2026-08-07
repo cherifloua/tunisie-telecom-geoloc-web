@@ -1,3 +1,7 @@
+html, body {
+    overflow-x: hidden;
+}
+
 * { box-sizing: border-box; }
 
 body {
@@ -57,6 +61,8 @@ body {
 
 .content {
     flex: 1;
+    min-width: 0;
+    max-width: 100%;
     padding: 40px;
     background: #f4f7fa;
 }
@@ -117,7 +123,7 @@ h2 {
 
 .kpi-grid {
     display: grid;
-    grid-template-columns: repeat(4, minmax(180px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     gap: 18px;
 }
 
@@ -185,6 +191,7 @@ h2 {
     background: white;
     border-radius: 12px;
     padding: 22px 24px;
+    min-width: 0;
     box-shadow: 0 1px 3px rgba(16, 42, 67, 0.08);
 }
 
@@ -791,6 +798,28 @@ textarea { resize: vertical; min-height: 90px; }
 
 #map { height: 520px; border-radius: 8px; border: 2px solid #99c2e0; }
 
+.bcch-search { background: white; padding: 16px 18px; border-radius: 10px; box-shadow: 0 1px 3px rgba(16,42,67,0.08); }
+.bcch-form { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.bcch-form input[type=text] { flex: 1; min-width: 220px; max-width: 340px; padding: 9px 12px; border: 1px solid #cdd8e3; border-radius: 6px; font-size: 13.5px; }
+.bcch-form button { background: #e6a817; color: white; border: none; border-radius: 6px; padding: 9px 16px; font-size: 13.5px; cursor: pointer; }
+.bcch-form button:hover { background: #cf9410; }
+.bcch-clear { font-size: 12.5px; color: #64748b; text-decoration: none; }
+.bcch-clear:hover { text-decoration: underline; }
+.bcch-result { margin: 10px 0 0 0; font-size: 13.5px; }
+.bcch-result-ok { color: #16324a; }
+.bcch-result-empty { color: #c0392b; }
+
+@keyframes bcch-pulse-anim {
+    0%   { transform: scale(0.6); opacity: 0.9; }
+    70%  { transform: scale(1.9); opacity: 0; }
+    100% { transform: scale(1.9); opacity: 0; }
+}
+.leaflet-interactive.bcch-pulse {
+    animation: bcch-pulse-anim 1.6s ease-out infinite;
+    transform-origin: center;
+    transform-box: fill-box;
+}
+
 .search-box {
     margin-bottom: 20px;
 }
@@ -805,6 +834,21 @@ pre.tech-sheet {
     white-space: pre-wrap;
     font-family: Arial, sans-serif;
     font-size: 13px;
+}
+
+/* ---------- Responsive : palier intermediaire (tablette, fenetre PC reduite) ---------- */
+@media (max-width: 1150px) {
+    .content {
+        padding: 24px;
+    }
+
+    .dash-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .sidebar {
+        width: 180px;
+    }
 }
 
 /* ---------- Responsive : rend l'application utilisable sur telephone ---------- */
@@ -879,5 +923,15 @@ pre.tech-sheet {
     .earth-banner {
         flex-direction: column;
         align-items: flex-start;
+    }
+
+    .bcch-form input[type=text] {
+        min-width: 0;
+        width: 100%;
+        max-width: none;
+    }
+
+    .bcch-form button {
+        width: 100%;
     }
 }

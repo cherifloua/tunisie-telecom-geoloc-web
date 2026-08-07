@@ -1,7 +1,9 @@
 com\telecomapp\web\web\SiteFormData.class
 com\telecomapp\web\util\CellPasteImporter$Result.class
 com\telecomapp\web\model\Site.class
+com\telecomapp\web\model\SiteRepository$PgConn.class
 com\telecomapp\web\util\ExcelSiteImporter.class
+com\telecomapp\web\model\SiteRepository$Dialect.class
 com\telecomapp\web\util\CellPasteImporter.class
 com\telecomapp\web\util\ExcelSiteExporter.class
 com\telecomapp\web\util\ExcelSiteImporter$Result.class

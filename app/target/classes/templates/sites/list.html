@@ -26,6 +26,8 @@
         <form th:action="@{/sites}" method="get">
             <input type="text" name="q" th:value="${q}" placeholder="Rechercher par nom, ville, region, technologie, cellule ou canal (BCCH/ARFCN)..."/>
             <button class="button" type="submit">Rechercher</button>
+            <a th:if="${!q.isEmpty()}" class="button" style="background:#e6a817;"
+               th:href="@{/map(bcch=${q})}">📍 Voir ce BCCH sur la carte</a>
         </form>
     </div>
 
